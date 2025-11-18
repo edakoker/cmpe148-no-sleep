@@ -5,34 +5,36 @@ DELIMITER = "|"
 
 def build_message(msg_type: str, payload: str, client_id: str = "", seq: int = 0) -> bytes:
     """
-    Uygulama seviyesindeki bir mesaji
+    Build an application-layer message in the format:
     VERSION|TYPE|CLIENT_ID|SEQ|LENGTH\nPAYLOAD
-    formatina cevirir ve bytes olarak dondurur.
+
+    and return it as bytes ready to be sent over the socket.
     """
     version = "1"
 
-    # payload'i utf-8'e cevirip uzunlugunu hesapla
+    # Encode the payload and compute its length in bytes
     payload_bytes = payload.encode("utf-8")
     length = len(payload_bytes)
 
-    # header satirini olustur
+    # Build the header line
     header = f"{version}{DELIMITER}{msg_type}{DELIMITER}{client_id}{DELIMITER}{seq}{DELIMITER}{length}\n"
 
-    # header + payload'i birlestirip bytes'a cevir
+    # Concatenate header and payload as bytes
     full_message = header.encode("utf-8") + payload_bytes
     return full_message
 
 
 def parse_message(raw_bytes: bytes) -> dict:
     """
-    Raw bytes olarak gelen mesaji cozup
-    bir dict olarak dondurur.
-    Beklenen format:
+    Parse a raw message (bytes) and return a dictionary with fields:
+    version, type, client_id, seq, length, payload.
+
+    Expected format:
     VERSION|TYPE|CLIENT_ID|SEQ|LENGTH\\nPAYLOAD
     """
     text = raw_bytes.decode("utf-8")
 
-    # header ve payload'i ayir (ilk \\n'a gore)
+    # Split into header and payload using the first newline
     try:
         header_line, payload = text.split("\n", 1)
     except ValueError:
@@ -44,18 +46,18 @@ def parse_message(raw_bytes: bytes) -> dict:
 
     version, msg_type, client_id, seq_str, length_str = parts
 
-    # sayisal alanlari cevir
+    # Convert numeric fields
     try:
         seq = int(seq_str)
         length = int(length_str)
     except ValueError:
         raise ValueError("Invalid header: SEQ or LENGTH is not an integer")
 
-    # istege bagli: length ile payload uzunlugu uyusuyor mu kontrol edelim
+    # Optional: verify that LENGTH matches the actual payload length
     payload_bytes = payload.encode("utf-8")
     if len(payload_bytes) != length:
-        # Simdilik sadece warning gibi dusunelim, hata da verebilirdik
-        # ama projenin ilerleyen kisminda burada sikica kontrol yapabiliriz.
+        # For now, we just ignore the mismatch.
+        # Later we could raise an error or log a warning here.
         pass
 
     return {

@@ -1,27 +1,27 @@
 import socket
 
-HOST = "127.0.0.1"  # localhost - simdilik kendi bilgisayarimiz
-PORT = 5050         # kullanacagimiz port numarasi
+HOST = "127.0.0.1"  # localhost - for now we run everything on the same machine
+PORT = 5050         # port number used by the server
 
 
 def run_server():
-    # 1) TCP socket olustur
+    # 1) Create a TCP socket
     server_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
-    # 2) IP + port'a bagla
+    # 2) Bind the socket to IP + port
     server_sock.bind((HOST, PORT))
 
-    # 3) Dinlemeye basla
+    # 3) Start listening for incoming connections
     server_sock.listen(5)
     print(f"Server listening on {HOST}:{PORT}")
 
-    # 4) Bir client baglanana kadar bekle
+    # 4) Wait until a client connects
     conn, addr = server_sock.accept()
     print(f"Connected by {addr}")
 
-    # 5) Client'tan mesaj al ve geri gonder (echo)
+    # 5) Receive messages from the client and send them back (echo)
     while True:
-        data = conn.recv(1024)  # max 1024 byte al
+        data = conn.recv(1024)  # receive up to 1024 bytes
         if not data:
             print("Client disconnected.")
             break
@@ -29,7 +29,7 @@ def run_server():
         message = data.decode("utf-8")
         print(f"Received from client: {message}")
 
-        # gelen mesaji aynen geri gonder
+        # echo: send the same data back to the client
         conn.sendall(data)
 
     conn.close()

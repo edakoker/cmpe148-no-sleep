@@ -1,31 +1,31 @@
 import socket
 
-HOST = "127.0.0.1"  # server ip'si (simdilik ayni makine)
-PORT = 5050         # server'in dinledigi port
+HOST = "127.0.0.1"  # server IP (for now, same machine)
+PORT = 5050         # port where the server is listening
 
 
 def run_client():
-    # 1) TCP socket olustur
+    # 1) Create a TCP socket
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
-    # 2) Server'a baglan
+    # 2) Connect to the server
     sock.connect((HOST, PORT))
     print(f"Connected to server at {HOST}:{PORT}")
 
     try:
         while True:
-            # kullanicidan input al
+            # read user input from the terminal
             message = input("You: ")
 
-            # cikis komutlari
+            # exit commands
             if message.lower() in ("q", "quit", "exit"):
                 print("Exiting client...")
                 break
 
-            # mesaji byte'a cevir ve gonder
+            # convert text to bytes and send it to the server
             sock.sendall(message.encode("utf-8"))
 
-            # server'dan cevap bekle
+            # wait for a reply from the server
             data = sock.recv(1024)
             if not data:
                 print("Server closed the connection.")
